@@ -1,0 +1,152 @@
+/* Estilos generales - Tema neutro */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #ffffff; /* Letras blancas */
+    background-color: #2d3436; /* Fondo oscuro neutro */
+    margin: 0;
+    padding: 20px;
+}
+
+h1, h2 {
+    color: #ffffff;
+}
+
+h1 {
+    border-bottom: 2px solid #636e72; /* Borde gris */
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 28px;
+    margin-top: 20px; /* Reducido para el botón en esquina derecha */
+}
+
+h2 {
+    font-size: 22px;
+    margin-top: 30px;
+    color: #dfe6e9; /* Gris claro */
+}
+
+/* Botón de cerrar sesión - Esquina superior derecha */
+a[href="logout.php"] {
+    background-color: #d81b1b; /* Rojo */
+    color: rgb(133, 11, 11);
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: bold;
+    display: inline-block;
+    position: fixed; /* Posición fija */
+    top: 40px;
+    right: 15px; /* Cambiado a derecha */
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    border: none;
+    text-decoration: none;
+}
+
+a[href="logout.php"]:hover {
+    background-color: #931e1e; /* Rojo más oscuro */
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Tabla de casos - Estilo neutro */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 25px 0;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+    background-color: #3c4245; /* Fondo gris oscuro */
+    color: #ffffff;
+}
+
+thead {
+    background-color: #636e72; /* Gris medio */
+    color: white;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #555; /* Borde más claro */
+}
+
+th {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+/* Eliminado el hover effect en las filas */
+/* tr:hover {
+    background-color: #f1f9ff;
+} */
+
+/* Botones de acción */
+.btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-right: 5px;
+    display: inline-block;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #636e72; /* Gris medio */
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #57606f; /* Gris más oscuro */
+}
+
+.btn-success {
+    background-color: #2ecc71; /* Verde (mantenido para acciones positivas) */
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #27ae60; /* Verde más oscuro */
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    th, td {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    
+    .btn {
+        display: block;
+        margin-bottom: 5px;
+        width: 100%;
+    }
+    
+    /* Ajuste para móviles del botón de cerrar sesión */
+    a[href="logout.php"] {
+        padding: 6px 12px;
+        font-size: 14px;
+        top: 10px;
+        right: 10px;
+    }
+}
+
+/* Efectos y transiciones */
+.btn, a {
+    transition: all 0.3s ease;
+}
+
+/* Mejoras de accesibilidad */
+:focus {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}

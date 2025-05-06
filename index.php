@@ -1,0 +1,67 @@
+<?php require 'conexion.php'; ?> 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protección infantil IXTLAHUACA</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <header>
+        <h1>Protección infantil IXTLAHUACA</h1>
+        <h3>Sistema Integral de Denuncias y Seguimiento de Casos</h3>
+        <a href="login.php" class="btn-iniciar-sesion">Iniciar sesión</a>
+    </header>
+    
+    <main>
+        <section class="hero">
+            <h2>Tu voz es importante</h2>
+            <p>Si conoces o haz presenciado una situación de riesgo en la que un menor pueda estar involucrado, no dudes en contactarnos.</p>
+            
+            <a href="denunciar.php" class="btn">Hacer una denuncia</a>
+
+            <a href="tel:+527121142431" class="btn-llamar" id="boton-llamar">
+                <span class="texto-movil">Llamar ahora</span>
+                <span class="texto-desktop">Llamar al: 123-456-7890</span>
+            </a>
+        </section>
+
+        <section class="galeria-futurista">
+            <h2>Su felicidad puede depender de una simple acción</h2>
+            <div class="grid-imagenes">
+                
+                <!-- Imagen 2 -->
+                <a href="adopcion.php" class="imagen-link">
+                <div class="imagen-container">
+                    <img src="segunda.jpeg" alt="Derecho infantil" class="imagen-futurista">
+                    <div class="overlay">
+                        <h3>Quiero adoptar</h3>
+                    </div>
+                </div>
+                
+                <!-- Imagen 3 -->
+                <a href="https://www.gob.mx/difnacional#13743" class="imagen-link">
+                <div class="imagen-container">
+                    <img src="tercera.jpeg" alt="Infancias sanas" class="imagen-futurista">
+                    <div class="overlay">
+                        <h3>No sé que hacer</h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+</body>
+
+</html>
+
+<script>
+    // En tu archivo JavaScript o script tag
+document.getElementById('boton-llamar').addEventListener('click', function(e) {
+    if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        e.preventDefault();
+        alert("Por favor llama al: 123 456 7890 desde tu teléfono");
+    }
+});
+</script>

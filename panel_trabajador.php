@@ -1,0 +1,286 @@
+<?php
+session_start();
+if (!isset($_SESSION['usuario']) || $_SESSION['rol'] != 'trabajador_social') {
+    header("Location: login.php");
+    exit;
+}
+
+// Conexión a la base de datos
+require 'conexion.php';
+if ($conexion->connect_error) {
+    die("Error de conexión: " . $conexion->connect_error);
+}
+
+// Configuración de paginación
+$por_pagina = 10;
+
+// Paginación para denuncias
+$pagina_denuncias = isset($_GET['pagina_denuncias']) ? max(1, (int)$_GET['pagina_denuncias']) : 1;
+$inicio_denuncias = ($pagina_denuncias - 1) * $por_pagina;
+
+// Obtener denuncias con paginación
+$query_denuncias = "SELECT SQL_CALC_FOUND_ROWS d.id, d.fecha_registro, d.situacion, 
+                   LEFT(d.descripcion, 50) as descripcion_corta, d.estado, 
+                   u.usuario as asignado_a 
+                   FROM denuncias d 
+                   LEFT JOIN usuarios u ON d.usuario_asignado = u.id
+                   ORDER BY d.fecha_registro DESC
+                   LIMIT $inicio_denuncias, $por_pagina";
+$denuncias_result = $conexion->query($query_denuncias);
+$denuncias = $denuncias_result->fetch_all(MYSQLI_ASSOC);
+
+$total_denuncias = $conexion->query("SELECT FOUND_ROWS() as total")->fetch_assoc()['total'];
+$paginas_denuncias = ceil($total_denuncias / $por_pagina);
+
+// Paginación para adopciones
+$pagina_adopciones = isset($_GET['pagina_adopciones']) ? max(1, (int)$_GET['pagina_adopciones']) : 1;
+$inicio_adopciones = ($pagina_adopciones - 1) * $por_pagina;
+
+// Obtener solicitudes de adopción con paginación
+$query_adopciones = "SELECT SQL_CALC_FOUND_ROWS id, nombre_completo, email, telefono, estado, fecha_solicitud
+                    FROM adopciones 
+                    ORDER BY fecha_solicitud DESC
+                    LIMIT $inicio_adopciones, $por_pagina";
+$adopciones_result = $conexion->query($query_adopciones);
+$adopciones = $adopciones_result->fetch_all(MYSQLI_ASSOC);
+
+$total_adopciones = $conexion->query("SELECT FOUND_ROWS() as total")->fetch_assoc()['total'];
+$paginas_adopciones = ceil($total_adopciones / $por_pagina);
+
+// Obtener lista de abogados y psicólogos para asignación (una sola vez)
+$query_profesionales = "SELECT id, usuario, rol FROM usuarios WHERE rol IN ('abogado', 'psicologo') ORDER BY rol, usuario";
+$profesionales_result = $conexion->query($query_profesionales);
+$profesionales = $profesionales_result->fetch_all(MYSQLI_ASSOC);
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel del Trabajador Social</title>
+    <link rel="stylesheet" href="estilos-prof.css">
+    <style>
+        .paginacion {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .paginacion a, .paginacion span {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 0 2px;
+            border: 1px solid #ddd;
+            text-decoration: none;
+        }
+        .paginacion a:hover {
+            background: #eee;
+        }
+        .paginacion .actual {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color:#636e72;
+        }
+        .btn {
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        select {
+            padding: 5px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bienvenido, <?php echo htmlspecialchars($_SESSION['usuario']); ?></h1>
+    <p><a href="logout.php" style="color:rgb(252, 252, 252);">Cerrar sesión</a></p>
+    
+    <div class="tabs">
+        <button class="tab active" onclick="openTab(event, 'denuncias')">Denuncias</button>
+        <button class="tab" onclick="openTab(event, 'adopciones')">Adopciones</button>
+    </div>
+    
+    <div id="denuncias" class="tab-content active">
+        <h2>Todas las denuncias (<?php echo $total_denuncias; ?>)</h2>
+        
+        <?php if (!empty($denuncias)): ?>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Situación</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Asignado a</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($denuncias as $denuncia): ?>
+                <tr>
+                    <td><?php echo $denuncia['id']; ?></td>
+                    <td><?php echo date('d/m/Y H:i', strtotime($denuncia['fecha_registro'])); ?></td>
+                    <td><?php echo ucfirst(str_replace('_', ' ', $denuncia['situacion'])); ?></td>
+                    <td><?php echo htmlspecialchars($denuncia['descripcion_corta']) . '...'; ?></td>
+                    <td><?php echo ucfirst($denuncia['estado']); ?></td>
+                    <td><?php echo htmlspecialchars($denuncia['asignado_a'] ?? 'No asignado'); ?></td>
+                    <td>
+                        <a href="ver_denuncia.php?id=<?php echo $denuncia['id']; ?>" class="btn btn-primary">Ver</a>
+                        <form action="asignar_profesional.php" method="post" style="display: inline;">
+                            <input type="hidden" name="denuncia_id" value="<?php echo $denuncia['id']; ?>">
+                            <select name="profesional_id" required>
+                                <option value="">Asignar a...</option>
+                                <?php foreach ($profesionales as $prof): ?>
+                                    <option value="<?php echo $prof['id']; ?>">
+                                        <?php echo htmlspecialchars($prof['usuario'] . ' (' . $prof['rol'] . ')'); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button type="submit" class="btn btn-success">Asignar</button>
+                        </form>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        
+        <div class="paginacion">
+            <?php if ($pagina_denuncias > 1): ?>
+                <a href="?pagina_denuncias=<?php echo $pagina_denuncias - 1; ?>">&laquo; Anterior</a>
+            <?php endif; ?>
+            
+            <?php for ($i = 1; $i <= $paginas_denuncias; $i++): ?>
+                <?php if ($i == $pagina_denuncias): ?>
+                    <span class="actual"><?php echo $i; ?></span>
+                <?php else: ?>
+                    <a href="?pagina_denuncias=<?php echo $i; ?>"><?php echo $i; ?></a>
+                <?php endif; ?>
+            <?php endfor; ?>
+            
+            <?php if ($pagina_denuncias < $paginas_denuncias): ?>
+                <a href="?pagina_denuncias=<?php echo $pagina_denuncias + 1; ?>">Siguiente &raquo;</a>
+            <?php endif; ?>
+        </div>
+        <?php else: ?>
+            <p>No hay denuncias registradas.</p>
+        <?php endif; ?>
+    </div>
+    
+    <div id="adopciones" class="tab-content">
+        <h2>Solicitudes de adopción (<?php echo $total_adopciones; ?>)</h2>
+        
+        <?php if (!empty($adopciones)): ?>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($adopciones as $adopcion): ?>
+                <tr>
+                    <td><?php echo $adopcion['id']; ?></td>
+                    <td><?php echo htmlspecialchars($adopcion['nombre_completo']); ?></td>
+                    <td><?php echo htmlspecialchars($adopcion['email']); ?></td>
+                    <td><?php echo htmlspecialchars($adopcion['telefono']); ?></td>
+                    <td><?php echo ucfirst($adopcion['estado']); ?></td>
+                    <td><?php echo date('d/m/Y', strtotime($adopcion['fecha_solicitud'])); ?></td>
+                    <td>
+                        <a href="ver_adopcion.php?id=<?php echo $adopcion['id']; ?>" class="btn btn-primary">Ver</a>
+                        <form action="cambiar_estado_adopcion.php" method="post" style="display: inline;">
+                            <input type="hidden" name="adopcion_id" value="<?php echo $adopcion['id']; ?>">
+                            <select name="nuevo_estado">
+                                <option value="pendiente" <?php echo $adopcion['estado'] == 'pendiente' ? 'selected' : ''; ?>>Pendiente</option>
+                                <option value="revision" <?php echo $adopcion['estado'] == 'revision' ? 'selected' : ''; ?>>En revisión</option>
+                                <option value="aprobado" <?php echo $adopcion['estado'] == 'aprobado' ? 'selected' : ''; ?>>Aprobado</option>
+                                <option value="rechazado" <?php echo $adopcion['estado'] == 'rechazado' ? 'selected' : ''; ?>>Rechazado</option>
+                            </select>
+                            <button type="submit" class="btn btn-success">Actualizar</button>
+                        </form>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        
+        <div class="paginacion">
+            <?php if ($pagina_adopciones > 1): ?>
+                <a href="?pagina_adopciones=<?php echo $pagina_adopciones - 1; ?>">&laquo; Anterior</a>
+            <?php endif; ?>
+            
+            <?php for ($i = 1; $i <= $paginas_adopciones; $i++): ?>
+                <?php if ($i == $pagina_adopciones): ?>
+                    <span class="actual"><?php echo $i; ?></span>
+                <?php else: ?>
+                    <a href="?pagina_adopciones=<?php echo $i; ?>"><?php echo $i; ?></a>
+                <?php endif; ?>
+            <?php endfor; ?>
+            
+            <?php if ($pagina_adopciones < $paginas_adopciones): ?>
+                <a href="?pagina_adopciones=<?php echo $pagina_adopciones + 1; ?>">Siguiente &raquo;</a>
+            <?php endif; ?>
+        </div>
+        <?php else: ?>
+            <p>No hay solicitudes de adopción registradas.</p>
+        <?php endif; ?>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            
+            tablinks = document.getElementsByClassName("tab");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+    </script>
+</body>
+</html>
+<?php 
+$conexion->close();
+?>
